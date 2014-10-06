@@ -41,12 +41,11 @@ public class FileAttribute {
 	}
 	@Override
 	public String toString() {
-		if(fileName.indexOf(",")>0){
+		if(fileName.indexOf(",")>0 && fileName.indexOf("\"")<0 ){// only plus one time
 			fileName="\""+fileName+"\"";
 			filePath="\""+filePath+"\"";
 		} 
-		return  fileName + "," + suffix
-				+ "," + filePath + "," + dataTime + "\n";
+		return  fileName + "," + suffix + "," + filePath + "," + dataTime + "\n";
 	}
 	public int getSize(){
 		try {

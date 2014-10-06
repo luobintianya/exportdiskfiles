@@ -15,10 +15,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class ExportDiskFilesIntoCSV { 
 	private LinkedBlockingQueue<FileAttribute> bq = new LinkedBlockingQueue<FileAttribute>();
-	private final int MAXBATCH = 100000;
+	private final int MAXBATCH =80000;
 	public final static String HEADLINE ="filename,suffix,filepath,datatime\n";
-	private WatchBlockThread obthread = null;
-	private AtomicBoolean isdone=new AtomicBoolean(false); 
+	private WatchBlockThread obthread = null; 
 	public ExportDiskFilesIntoCSV() { 
 	} 
 	public  void initialize(String path){
@@ -42,21 +41,12 @@ public class ExportDiskFilesIntoCSV {
 	public void exportToCsv(FileAttribute attr) {    
 		try {  
 		//	System.out.println(Thread.currentThread().getId()+" 放入文件"+attr.toString());
-			bq.put(attr);  
-			/*if(bq.size()<this.MAXBATCH){ 
-				synchronized (this) {
-					notifyAll();
+			if(bq.size()>MAXBATCH){
+				synchronized (obthread) {
+					obthread.notifyAll();
 				}
-			
 			}
-			if(isdone.get()==true){
-				synchronized (this) {
-					notifyAll();
-				}
-			}*/
-			
-			 
-			
+			bq.put(attr);   
 		} catch (InterruptedException e) { 
 			e.printStackTrace(); 
 		}  
@@ -65,7 +55,10 @@ public class ExportDiskFilesIntoCSV {
 		
 	
 	public void setIsdone(boolean newValue) {
-		this.isdone.set(newValue);
+		obthread.setIsdone(true);
+		synchronized (obthread) {
+			obthread.notifyAll();
+		}
 	}
 
 	public void closeFile(){ 
