@@ -23,23 +23,12 @@ public class FileBreadthReader implements FileInfoReader {
 	private Queue<File> unreadfiles=new LinkedBlockingQueue<File>();    
 	public FileBreadthReader(String outpath){
 		exportCsv.initialize(outpath);  
-	}
-
+	} 
 	@Override
 	public void ReadFileInfo(String filepath) {  
 		startReadFile(new File(filepath),list);
-		exportCsv.closeFile(); 
- 
-		
-	}
-	
-	
-	public static void main(String args[]){ 
-		FileBreadthReader fbr=new FileBreadthReader("c://filedb/dd.csv");
-		fbr.ReadFileInfo("D:\\Program Files\\MySQL\\MySQL Workbench CE 6.1.6\\python\\lib\\xml");
-		
-	}
-	
+		exportCsv.closeFile();  
+	}  
 	private void startReadFile(File path,ArrayList<FileAggregate> list){ 
 		unreadfiles.add(path);  
 		while(!unreadfiles.isEmpty()){

@@ -5,6 +5,9 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * this util class used to export file to csv
@@ -14,9 +17,11 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class ExportDiskFilesIntoCSV { 
 	private LinkedBlockingQueue<FileAttribute> bq = new LinkedBlockingQueue<FileAttribute>();
-	private final int MAXBATCH =10000;
+	private final int MAXBATCH =100000;
 	public final static String HEADLINE ="filename,suffix,filepath,datatime\n";
 	private WatchBlockThread obthread = null; 
+	//private Lock lock = new ReentrantLock();
+	//private Condition isfull= lock.newCondition();
 	public ExportDiskFilesIntoCSV() { 
 	} 
 	public  void initialize(String path){
@@ -28,9 +33,11 @@ public class ExportDiskFilesIntoCSV {
 			 	ByteBuffer bytebuffer=ByteBuffer.wrap(HEADLINE.getBytes());
 			 	filechannel.write(bytebuffer);
 			 	filechannel.close();
-			 	outputfile.close();
-			    obthread=new WatchBlockThread(MAXBATCH, bq,outfile);
+			 	outputfile.close();  
+			 	//obthread=new WatchBlockThread(MAXBATCH, bq,outfile,lock,isfull);
+			 	obthread=new WatchBlockThread(MAXBATCH, bq,outfile);
 				obthread.start(); 
+				
 		}catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -39,14 +46,29 @@ public class ExportDiskFilesIntoCSV {
 
 	public void exportToCsv(FileAttribute attr) {    
 		try {  
-		//	System.out.println(Thread.currentThread().getId()+" 放入文件"+attr.toString());
-
-			bq.put(attr); 
-			if(bq.size()>MAXBATCH){
+			//System.out.println(Thread.currentThread().getId()+" 放入文件"+attr.toString()); 
+			bq.put(attr);  
+			//lock.lock(); 
+			if(bq.size()>MAXBATCH){    
 				synchronized (obthread) {
 					obthread.notifyAll();
 				}
-			}  
+			} 
+			 
+			/*try{
+			
+				if(bq.size()>MAXBATCH){   
+					//System.out.println("wo tongzhi");
+					isfull.signalAll();
+					
+					synchronized (obthread) {
+						obthread.notifyAll();
+					}
+				} 
+			}finally{
+				lock.unlock();
+			} */
+		
 		} catch (InterruptedException e) { 
 			e.printStackTrace(); 
 		}  
@@ -56,17 +78,32 @@ public class ExportDiskFilesIntoCSV {
 	
 	public void setIsdone(boolean newValue) {
 		obthread.setIsdone(true);
-		try {
+		try { 
 			synchronized (obthread) {
-				obthread.notifyAll();
-			}
+				obthread.notifyAll();	//notifyAll waiting thread, to process not reach the max block 
+			} 
+		 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	 
+		/*lock.lock();
+		try {
+			isfull.signalAll();
+		} finally {
+			lock.unlock();
+		} */
 	}
 
 	public void closeFile(){ 
+		/*lock.lock();
+		try {
+			isfull.signalAll();
+		} finally {
+			lock.unlock();
+		}*/
+
 		try { 
 			synchronized (obthread) {
 				obthread.notifyAll();	//notifyAll waiting thread, to process not reach the max block 
@@ -83,11 +120,11 @@ public class ExportDiskFilesIntoCSV {
 	 * @param attrs
 	 * @return
 	 */
-	public static synchronized int  arraySize(FileAttribute[] attrs) {
-		int count = 0;
+	public synchronized static int arraySize(FileAttribute[] attrs) { 
+		int count = 0; 
 		for (FileAttribute attr : attrs) {
 			count += attr.getSize();
-		}
+		} 
 		return count;
 	}
 	

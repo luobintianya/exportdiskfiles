@@ -6,7 +6,7 @@ import java.util.Calendar;
 import javax.swing.filechooser.FileSystemView;
 
 import com.melon.exportdiskfiles.reader.FileInfoReader;
-import com.melon.exportdiskfiles.reader.impl.FileBreadthReader;
+import com.melon.exportdiskfiles.reader.impl.FileRecursionReader;
 
 /**
  * 
@@ -39,19 +39,17 @@ public class ExportDiskFiles {
 		 if(rootpan.indexOf(" ")>0){
 			 rootpan=rootpan.substring(0,rootpan.indexOf(" "));
 		 } 
-		System.out.println(rootpan); 
-		outfile = String.format(outfile, rootpan);
-		System.out.println(outfile);
-	
-		ExportDiskFiles ds = new ExportDiskFiles();
-		Calendar start = Calendar.getInstance(); 
-		
-		ds.enterRoot(rootpath,outfile); 
-		Calendar end = Calendar.getInstance();
-		System.out.println("start time:"+ String.format(DATETIMEFORMATTER, start));
-		System.out.println("end time:" + String.format(DATETIMEFORMATTER, end));
-		System.out.println("total cost time:"+ (end.getTimeInMillis() - start.getTimeInMillis())); 
-		System.exit(-1);
+		 System.out.println(rootpan); 
+		 outfile = String.format(outfile, rootpan);
+		 System.out.println(outfile); 
+		 ExportDiskFiles ds = new ExportDiskFiles();
+		 Calendar start = Calendar.getInstance();  
+		 ds.enterRoot(rootpath,outfile); 
+		 Calendar end = Calendar.getInstance();
+		 System.out.println("start time:"+ String.format(DATETIMEFORMATTER, start));
+		 System.out.println("end time:" + String.format(DATETIMEFORMATTER, end));
+		 System.out.println("total cost time:"+ (end.getTimeInMillis() - start.getTimeInMillis())); 
+		 System.exit(-1);
 
 	}
  
@@ -62,10 +60,8 @@ public class ExportDiskFiles {
 		 FileSystemView fsv = FileSystemView.getFileSystemView(); 
 		 String pan=fsv.getSystemDisplayName(rootFile);
 		 outfile = String.format(outfile,pan);
-		 FileInfoReader fread= new FileBreadthReader(outpath);
+		 FileInfoReader fread= new FileRecursionReader(outpath);
 		 fread.ReadFileInfo(rootPath);
 		 
-	}
- 
-
+	} 
 }

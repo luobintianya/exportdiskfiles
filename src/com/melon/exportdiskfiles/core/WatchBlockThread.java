@@ -10,6 +10,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * this thread is used to put all read files into a thread safe queue
@@ -26,12 +29,16 @@ public class WatchBlockThread extends Thread{
 	private AtomicInteger position =new AtomicInteger(ExportDiskFilesIntoCSV.HEADLINE.getBytes().length); 
 	private ExecutorService threadPool=Executors.newFixedThreadPool(8);
 	private AtomicBoolean isdone=new AtomicBoolean(false);
+//	private Lock lock = new ReentrantLock();  
+	//private Condition isfull;
 	public WatchBlockThread(int maxBlock,LinkedBlockingQueue<FileAttribute> attrs,File outfile){
 		this.maxBlock=maxBlock;
 		this.attrs=attrs; 
 		try {
-			outputfile = new RandomAccessFile(outfile,"rw");
-			filechannel=outputfile.getChannel();   
+			this.outputfile = new RandomAccessFile(outfile,"rw");
+			this.filechannel=outputfile.getChannel();   
+			//this.lock=lock;
+			//this.isfull=isfull;
 		} catch (FileNotFoundException e) { 
 			e.printStackTrace();
 		} 
@@ -41,14 +48,24 @@ public class WatchBlockThread extends Thread{
 	@Override
 	public void run() { 
 		while(true){  // do until system exit 
-			if ( this.isdone.get()==false && attrs.size() < this.maxBlock ) { 
+			if (this.isdone.get()==false && attrs.size() < this.maxBlock ) { 
 				try {
-					synchronized (this) {  
-						this.wait();
-					}
-				} catch (InterruptedException e) { 
+				synchronized (this) {  
+					this.wait();  
+				}
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				/*lock.lock();
+				try { 
+					isfull.await(); 
+				
+				} catch (InterruptedException e) { 
+					e.printStackTrace();
+				}finally{
+					lock.unlock();
+				}*/
 			}
 			ArrayList<FileAttribute> temp=new ArrayList<FileAttribute>(); 
 			if(attrs!= null && attrs.size() !=0){ //if out class notifiedAll then execute this step 
@@ -59,8 +76,7 @@ public class WatchBlockThread extends Thread{
 				totalrecords+=temp.size();   
 				int	totalsize=calculateArraySize(attrarrays);  
 			    ww= new WriteIntoFileThread(attrarrays,filechannel,position,totalsize);  
-				threadPool.submit(ww);  	
-
+				threadPool.submit(ww);  	 
 				if (this.isdone.get() == true && attrs.size() ==0) {
 					System.out.println("total files:" + totalrecords);
 				}
