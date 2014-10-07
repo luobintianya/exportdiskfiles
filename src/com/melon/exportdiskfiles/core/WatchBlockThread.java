@@ -40,9 +40,8 @@ public class WatchBlockThread extends Thread{
 	
 	@Override
 	public void run() { 
-		while(true){  // do until system exit
-			
-			if (attrs.size() < this.maxBlock && this.isdone.get()==false) { 
+		while(true){  // do until system exit 
+			if ( this.isdone.get()==false && attrs.size() < this.maxBlock ) { 
 				try {
 					synchronized (this) {  
 						this.wait();
@@ -51,20 +50,22 @@ public class WatchBlockThread extends Thread{
 					e.printStackTrace();
 				}
 			}
-			if(attrs!= null && attrs.size() !=0){ //if out class notifiedAll then execute this step
-				ArrayList<FileAttribute> temp=new ArrayList<FileAttribute>(); 
+			ArrayList<FileAttribute> temp=new ArrayList<FileAttribute>(); 
+			if(attrs!= null && attrs.size() !=0){ //if out class notifiedAll then execute this step 
 				WriteIntoFileThread ww=null;  
 				attrs.drainTo(temp,this.maxBlock);   //remove some elements to temp list  
 				final FileAttribute[] attrarrays= new FileAttribute[temp.size()];
 				temp.toArray(attrarrays);  
-				totalrecords+=temp.size();  
+				totalrecords+=temp.size();   
+				int	totalsize=calculateArraySize(attrarrays);  
+			    ww= new WriteIntoFileThread(attrarrays,filechannel,position,totalsize);  
+				threadPool.submit(ww);  	
+
 				if (this.isdone.get() == true && attrs.size() ==0) {
 					System.out.println("total files:" + totalrecords);
 				}
-				int	totalsize=calculateArraySize(attrarrays);  
-			    ww= new WriteIntoFileThread(attrarrays,filechannel,position,totalsize);  
-				threadPool.submit(ww);  
 			} 
+			
 			
 			/*if(this.isdone.get()==true && this.maxBlock>attrs.size()){  
 				System.out.println("read files into queue is done, waiting process by work thread");

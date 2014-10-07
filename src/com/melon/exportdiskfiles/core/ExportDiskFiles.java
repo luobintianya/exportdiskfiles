@@ -1,11 +1,12 @@
 package com.melon.exportdiskfiles.core;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.filechooser.FileSystemView;
+
+import com.melon.exportdiskfiles.reader.FileInfoReader;
+import com.melon.exportdiskfiles.reader.impl.FileBreadthReader;
 
 /**
  * 
@@ -20,9 +21,7 @@ import javax.swing.filechooser.FileSystemView;
  */
 public class ExportDiskFiles { 
 	private static String outfile = "c:\\fileDB\\%1$s.csv"; 
-	private static String ignorfile="$RECYCLE.BIN $recycle.bin eclipse hybris springsource .png .class ";  
 	private static final String DATETIMEFORMATTER="%1$tY-%1$tm-%1$te-%1$tT";
-	private static ExportDiskFilesIntoCSV exportCsv=new ExportDiskFilesIntoCSV();
 	public  static void main(String args[]){ 
 		 System.out.println("       this tools will used to export disk files to csv files(c://fileDB/xxx.csv)");
 		 System.out.println("       author:lixin wang(luobintianya@sina.com) ");
@@ -43,11 +42,11 @@ public class ExportDiskFiles {
 		System.out.println(rootpan); 
 		outfile = String.format(outfile, rootpan);
 		System.out.println(outfile);
-		exportCsv.initialize(outfile); 
+	
 		ExportDiskFiles ds = new ExportDiskFiles();
 		Calendar start = Calendar.getInstance(); 
-		ds.enterRoot(rootpath);
-	  	exportCsv.closeFile();
+		
+		ds.enterRoot(rootpath,outfile); 
 		Calendar end = Calendar.getInstance();
 		System.out.println("start time:"+ String.format(DATETIMEFORMATTER, start));
 		System.out.println("end time:" + String.format(DATETIMEFORMATTER, end));
@@ -55,88 +54,18 @@ public class ExportDiskFiles {
 		System.exit(-1);
 
 	}
+ 
 
-	public void exportToCsv(FileAttribute attr) {  
-		exportCsv.exportToCsv(attr);  
-	};
-
-	public void enterRoot(String rootPath) {
+	public void enterRoot(String rootPath,String outpath) {
 		if (rootPath == null || rootPath.length() < 0)throw new IllegalArgumentException();
 		 File rootFile = new File(rootPath); 
 		 FileSystemView fsv = FileSystemView.getFileSystemView(); 
 		 String pan=fsv.getSystemDisplayName(rootFile);
 		 outfile = String.format(outfile,pan);
-		 ArrayList<FileAggregate> list=new ArrayList<FileAggregate>(); 
-		 AtomicInteger deep=new AtomicInteger();
-		 startIterate(rootFile,deep,list); 
+		 FileInfoReader fread= new FileBreadthReader(outpath);
+		 fread.ReadFileInfo(rootPath);
+		 
 	}
  
-	/**
-	 * start iterate
-	 * @param path
-	 * @param list
-	 */
-	public void startIterate(File path,AtomicInteger deep,ArrayList<FileAggregate> list){  
-		if(path.isFile()){
-			FileAttribute fileAttr=new FileAttribute();
-			Calendar ca= Calendar.getInstance();
-		    ca.setTimeInMillis(path.lastModified());
-			String fileName=path.getName();
-			fileAttr.setDataTime(String.format("%1$tY-%1$te-%1$tm-%1$tT", ca));
-			fileAttr.setFileName(fileName);
-			fileAttr.setFilePath(path.getAbsolutePath());  
-			//System.out.println(fileName);
-			if(fileName.lastIndexOf('.')>0){
-			fileAttr.setSuffix(fileName.substring(fileName.lastIndexOf('.'),fileName.length())); 
-			} 
-			if(ignorfile.indexOf(fileAttr.getSuffix().toLowerCase())<0 ){
-				exportToCsv(fileAttr);
-			}else{
-				//System.out.println("ignore file name:"+fileName);
-			}
-			
-		}   
-		if (path.isDirectory()){// if file is directory then iterate method
-			File[] subFiles = path.listFiles();
-			if(subFiles==null) return ; 
-			deep.incrementAndGet();
-			for(File file:subFiles){
-				String fileName=file.getName();  
-				if(ignorfile.indexOf(fileName)>=0 ) { 
-					continue;
-				}   
-			  startIterate(file,deep,list); 
-			}
-			deep.decrementAndGet(); 
-		}
-		if(deep.get()==0){
-			exportCsv.setIsdone(true);
-		} 
-		return;
-	} 
-	  class FileAggregate { 
-		private String fileSuffix;
-		private Integer count;// file times
-		private ArrayList<String> paths = new ArrayList<String>();// store the file  paths  same 
-		
-		public String getFileSuffix() {
-			return fileSuffix;
-		}
-		public Integer getCount() {
-			return count;
-		}
-		public ArrayList<String> getPaths() {
-			return paths;
-		}
-		public void setFileSuffix(String fileSuffix) {
-			this.fileSuffix = fileSuffix;
-		}
-		public void setCount(Integer count) {
-			this.count = count;
-		}
-		public void setPaths(ArrayList<String> paths) {
-			this.paths = paths;
-		} 
-	} 
 
 }

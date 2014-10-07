@@ -5,7 +5,6 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * this util class used to export file to csv
@@ -15,7 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class ExportDiskFilesIntoCSV { 
 	private LinkedBlockingQueue<FileAttribute> bq = new LinkedBlockingQueue<FileAttribute>();
-	private final int MAXBATCH =80000;
+	private final int MAXBATCH =10000;
 	public final static String HEADLINE ="filename,suffix,filepath,datatime\n";
 	private WatchBlockThread obthread = null; 
 	public ExportDiskFilesIntoCSV() { 
@@ -41,12 +40,13 @@ public class ExportDiskFilesIntoCSV {
 	public void exportToCsv(FileAttribute attr) {    
 		try {  
 		//	System.out.println(Thread.currentThread().getId()+" 放入文件"+attr.toString());
+
+			bq.put(attr); 
 			if(bq.size()>MAXBATCH){
 				synchronized (obthread) {
 					obthread.notifyAll();
 				}
-			}
-			bq.put(attr);   
+			}  
 		} catch (InterruptedException e) { 
 			e.printStackTrace(); 
 		}  
@@ -56,8 +56,13 @@ public class ExportDiskFilesIntoCSV {
 	
 	public void setIsdone(boolean newValue) {
 		obthread.setIsdone(true);
-		synchronized (obthread) {
-			obthread.notifyAll();
+		try {
+			synchronized (obthread) {
+				obthread.notifyAll();
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
