@@ -1,6 +1,6 @@
 exportdisktocsv
 ===============
-this tools is used export disk files to a csv file (500G within 10-15 minutes). the export file path is "C:\fileDB"
+this tools is used export disk files to a csv file (500G disk within 10-15 minutes). the export file path is "C:\fileDB"
 you can import this csv file to mysql or any other db used search the file basic 
 information.
 used window command as below:
