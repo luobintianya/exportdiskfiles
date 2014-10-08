@@ -3,6 +3,7 @@ package com.melon.exportdiskfiles.core;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -11,7 +12,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Robin
  *
  */
-class WriteIntoFileThread implements Runnable{
+class WriteIntoFileCall implements Callable<Boolean>{
 	private	MappedByteBuffer mb;
 	private FileAttribute[] attrs = null ;  
 	private FileChannel filechannel;   
@@ -22,7 +23,7 @@ class WriteIntoFileThread implements Runnable{
 	 * @param atomposition
 	 * @param totalsize
 	 */
-	public WriteIntoFileThread(FileAttribute[] attrs,FileChannel filechannel,AtomicInteger atomposition,int totalsize){ 
+	public WriteIntoFileCall(FileAttribute[] attrs,FileChannel filechannel,AtomicInteger atomposition,int totalsize){ 
 	try {
 		
 		ReentrantLock lock =new ReentrantLock();
@@ -38,9 +39,9 @@ class WriteIntoFileThread implements Runnable{
 	} catch (Exception e) {
 		e.getStackTrace();
 	}  
-}  
+} 
 @Override
-public void run() {
+public Boolean call() throws Exception {
 	// TODO Auto-generated method stub
 	ReentrantLock lock =new ReentrantLock();
 	lock.lock(); 
@@ -56,7 +57,7 @@ public void run() {
 		e.printStackTrace(); 
 	} finally{ 
 		lock.unlock();
-	}   
-	
+	}  
+	return true;
 };
 }

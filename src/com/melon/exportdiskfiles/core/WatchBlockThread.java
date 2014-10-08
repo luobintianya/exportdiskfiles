@@ -79,17 +79,8 @@ public class WatchBlockThread extends Thread{
 				totalrecords+=temp.size();    
 				int	totalsize=calculateArraySize(attrarrays);   
 				WriteIntoFileThread ww= new WriteIntoFileThread(attrarrays,filechannel,position,totalsize);  
-				Future<Boolean> result=	threadPool.submit(ww);  
-				try {
-				Boolean issucess=result.get();
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (ExecutionException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}  
-				if (this.isdone.get() == true && attrs.size() ==0 && result.isDone()) {
+				threadPool.submit(ww);
+				if (this.isdone.get() == true && attrs.size() ==0) {
 					System.out.println("total files:" + totalrecords);  
 					threadPool.shutdown();// thread pools close
 					break;// break the loop 
