@@ -29,6 +29,7 @@ public class FileRecursionReader implements FileInfoReader{
 		// TODO Auto-generated method stub 
 		 AtomicInteger deep=new AtomicInteger(0); 
 		 startIterate(new File(filepath),deep,list);  
+		 
 		 exportCsv.closeFile();
 	}
 	public void startIterate(File path,AtomicInteger deep,ArrayList<FileAggregate> list){  
@@ -57,16 +58,18 @@ public class FileRecursionReader implements FileInfoReader{
 			deep.incrementAndGet();
 			for(File file:subFiles){
 				String fileName=file.getName();  
-			//	System.out.println(fileName);
+				//System.out.println(fileName);
 				if(IGNORFILES.indexOf(fileName)>=0 ) {
 					continue;
 				}
 			  startIterate(file,deep,list); 
 			}
 			deep.decrementAndGet(); 
-		}
+		}  
 		if(deep.get()==0){
 			exportCsv.setIsdone(true);
 		}  
+		
+		
 	} 
 }

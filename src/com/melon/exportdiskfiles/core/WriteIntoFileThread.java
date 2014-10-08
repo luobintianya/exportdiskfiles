@@ -25,6 +25,7 @@ class WriteIntoFileThread implements Callable<Boolean>{
 	 */
 	public WriteIntoFileThread(FileAttribute[] attrs,FileChannel filechannel,AtomicInteger atomposition,int totalsize){ 
 	try {
+		
 		ReentrantLock lock =new ReentrantLock();
 		lock.lock(); 
 		try{  
@@ -56,7 +57,7 @@ public Boolean call() throws Exception {
 		e.printStackTrace(); 
 	} finally{ 
 		lock.unlock();
-	} 
+	}  
 	return true;
 };
 }

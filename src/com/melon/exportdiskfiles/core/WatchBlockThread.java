@@ -5,8 +5,10 @@ import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -50,9 +52,9 @@ public class WatchBlockThread extends Thread{
 		while(true){  // do until system exit 
 			if (this.isdone.get()==false && attrs.size() < this.maxBlock ) { 
 				try {
-				synchronized (this) {  
-					this.wait();  
-				}
+					synchronized (this) { 
+						this.wait();
+					}
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -66,22 +68,36 @@ public class WatchBlockThread extends Thread{
 				}finally{
 					lock.unlock();
 				}*/
-			}
-			ArrayList<FileAttribute> temp=new ArrayList<FileAttribute>(); 
-			if(attrs!= null && attrs.size() !=0){ //if out class notifiedAll then execute this step 
-				WriteIntoFileThread ww=null;  
-				attrs.drainTo(temp,this.maxBlock);   //remove some elements to temp list  
+			} 
+	
+		
+			if(attrs!= null && attrs.size()!=0){ //if out class notifiedAll then execute this step  
+				ArrayList<FileAttribute> temp=new ArrayList<FileAttribute>(); 
+				attrs.drainTo(temp,this.maxBlock);   //remove some elements to temp list   
 				final FileAttribute[] attrarrays= new FileAttribute[temp.size()];
 				temp.toArray(attrarrays);  
-				totalrecords+=temp.size();   
-				int	totalsize=calculateArraySize(attrarrays);  
-			    ww= new WriteIntoFileThread(attrarrays,filechannel,position,totalsize);  
-				threadPool.submit(ww);  	 
-				if (this.isdone.get() == true && attrs.size() ==0) {
-					System.out.println("total files:" + totalrecords);
+				totalrecords+=temp.size();    
+				int	totalsize=calculateArraySize(attrarrays);   
+				WriteIntoFileThread ww= new WriteIntoFileThread(attrarrays,filechannel,position,totalsize);  
+				Future<Boolean> result=	threadPool.submit(ww);  
+				try {
+				Boolean issucess=result.get();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (ExecutionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}  
+				if (this.isdone.get() == true && attrs.size() ==0 && result.isDone()) {
+					System.out.println("total files:" + totalrecords);  
+					threadPool.shutdown();// thread pools close
+					break;// break the loop 
 				}
-			} 
+			}
+		 
 			
+		
 			
 			/*if(this.isdone.get()==true && this.maxBlock>attrs.size()){  
 				System.out.println("read files into queue is done, waiting process by work thread");
@@ -93,12 +109,20 @@ public class WatchBlockThread extends Thread{
 	  
 		 
 	}
-	public static int calculateArraySize(FileAttribute[] attrs){
-		int count=0; 
+	public  synchronized int calculateArraySize(FileAttribute[] attrs){
+		//AtomicInteger count=new AtomicInteger();  
+		int count=0;
+		//int i = 0;
+		//System.out.println("calculateArraySize start线程");
 		for(FileAttribute attr:attrs){
-			count+=attr.getSize();
+			 count+=attr.getSize();
+			//count.addAndGet(attr.getSize());
+			//i++;
+		//	System.out.println(i+"calculateArraySize "+attr.getSize());
 		} 
+		//System.out.println("calculateArraySize end线程"+i);
 		return count;
+		//count.get();
 	}
 	
 	

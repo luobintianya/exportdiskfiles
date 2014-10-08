@@ -77,17 +77,16 @@ public class ExportDiskFilesIntoCSV {
 		
 	
 	public void setIsdone(boolean newValue) {
-		obthread.setIsdone(true);
+		obthread.setIsdone(true); 
 		try { 
-			synchronized (obthread) {
-				obthread.notifyAll();	//notifyAll waiting thread, to process not reach the max block 
-			} 
-		 
+			synchronized (obthread) { 
+				obthread.notifyAll();	//notifyAll waiting thread, to process not reach the max block   
+				obthread.join();// waiting the write into csv finished. 
+			}  
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-	 
+		} 
 		/*lock.lock();
 		try {
 			isfull.signalAll();
@@ -103,16 +102,15 @@ public class ExportDiskFilesIntoCSV {
 		} finally {
 			lock.unlock();
 		}*/
-
-		try { 
-			synchronized (obthread) {
+		/*	try { 
+			synchronized (obthread) { 
 				obthread.notifyAll();	//notifyAll waiting thread, to process not reach the max block 
-			} 
-		 
+			}  
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
+	
 	}
 
 	/**
