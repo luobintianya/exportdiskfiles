@@ -6,6 +6,7 @@ information.
 used window command as below:
 java -jar exportdiskfiles.jar c:\\
 
+JDK since 1.5
 
 the file suffix as below will not export to csv file.
 $RECYCLE.BIN $recycle.bin eclipse springsource .png .class 
