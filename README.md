@@ -9,12 +9,12 @@ java -jar exportdiskfiles.jar c:\\
 
 
 the file suffix as below will not export to csv file.
-$RECYCLE.BIN $recycle.bin eclipse hybris springsource .png .class 
+$RECYCLE.BIN $recycle.bin eclipse springsource .png .class 
 
 
 
 这个工具用来导出硬盘上所有文件.除开代码里头排除的下列文件.
-$RECYCLE.BIN $recycle.bin eclipse hybris springsource .png .class 
+$RECYCLE.BIN $recycle.bin eclipse  springsource .png .class 
 
 在命令行里执行下列命令即可：
 
