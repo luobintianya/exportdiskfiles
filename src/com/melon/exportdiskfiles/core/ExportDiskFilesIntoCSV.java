@@ -14,14 +14,17 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class ExportDiskFilesIntoCSV { 
 	private LinkedBlockingQueue<FileAttribute> bq = new LinkedBlockingQueue<FileAttribute>();
-	private final int MAXBATCH =100000;
+	private final int MAXBATCH =10000;
 	public final static String HEADLINE ="filename,suffix,filepath,datatime\n";
 	private WatchBlockThread obthread = null; 
+	private String path;
 	//private Lock lock = new ReentrantLock();
 	//private Condition isfull= lock.newCondition();
-	public ExportDiskFilesIntoCSV() { 
+	public ExportDiskFilesIntoCSV(String path) { 
+		this.path=path;
+		initialize();
 	} 
-	public  void initialize(String path){
+	private  void initialize(){
 		File outfile=new File(path); 
 		try {
 				if(!outfile.exists()) {outfile.getParentFile().mkdirs(); } 
@@ -50,8 +53,7 @@ public class ExportDiskFilesIntoCSV {
 				synchronized (obthread) {
 					obthread.notifyAll();
 				}
-			} 
-			 
+			}  
 			/*try{
 			
 				if(bq.size()>MAXBATCH){   

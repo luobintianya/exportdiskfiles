@@ -6,7 +6,7 @@ import java.util.Calendar;
 import javax.swing.filechooser.FileSystemView;
 
 import com.melon.exportdiskfiles.reader.FileInfoReader;
-import com.melon.exportdiskfiles.reader.impl.FileRecursionReader;
+import com.melon.exportdiskfiles.reader.impl.FileBreadthReader;
 
 /**
  * 
@@ -60,7 +60,7 @@ public class ExportDiskFiles {
 		 FileSystemView fsv = FileSystemView.getFileSystemView(); 
 		 String pan=fsv.getSystemDisplayName(rootFile);
 		 outfile = String.format(outfile,pan);
-		 FileInfoReader fread= new FileRecursionReader(outpath);
+		 FileInfoReader fread= new FileBreadthReader(outpath);
 		 fread.ReadFileInfo(rootPath);
 		 
 	} 

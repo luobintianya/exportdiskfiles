@@ -16,20 +16,30 @@ import com.melon.exportdiskfiles.reader.FileInfoReader;
  *
  */
 public class FileRecursionReader implements FileInfoReader{ 
-	private ExportDiskFilesIntoCSV exportCsv=new ExportDiskFilesIntoCSV(); 
+	
+	private ExportDiskFilesIntoCSV exportCsv=null;; 
 	private ArrayList<FileAggregate> list=new ArrayList<FileAggregate>();  
  
 	
 	public FileRecursionReader(String outpath){
-		exportCsv.initialize(outpath);  
+		exportCsv=new ExportDiskFilesIntoCSV(outpath);
+	}
+
+	public FileRecursionReader(ExportDiskFilesIntoCSV exportCsv){
+		this.exportCsv=exportCsv;
 	}
 	
 	@Override
 	public void ReadFileInfo(String filepath) { 
 		// TODO Auto-generated method stub 
 		 AtomicInteger deep=new AtomicInteger(0); 
-		 startIterate(new File(filepath),deep,list);  
-		 
+		 startIterate(new File(filepath),deep,list);   
+		 exportCsv.closeFile();
+	} 
+	public void ReadFileInfo(File filepath) { 
+		// TODO Auto-generated method stub 
+		 AtomicInteger deep=new AtomicInteger(0); 
+		 startIterate(filepath,deep,list);   
 		 exportCsv.closeFile();
 	}
 	public void startIterate(File path,AtomicInteger deep,ArrayList<FileAggregate> list){  
@@ -67,9 +77,17 @@ public class FileRecursionReader implements FileInfoReader{
 			deep.decrementAndGet(); 
 		}  
 		if(deep.get()==0){
-			exportCsv.setIsdone(true);
+		//	exportCsv.setIsdone(true);
 		}  
 		
 		
+	}
+
+	public ArrayList<FileAggregate> getList() {
+		return list;
+	}
+
+	public void setList(ArrayList<FileAggregate> list) {
+		this.list = list;
 	} 
 }
